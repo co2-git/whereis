@@ -18,7 +18,9 @@ import WhereIs from 'WhereIs';
 <WhereIs
   cmd="atom"
   onResults={(results) => {
-    console.log({results});
+    if (results.length) {
+      console.log(`Atom is located at ${results[0].path}`);
+    }
   }}
   start
   />
