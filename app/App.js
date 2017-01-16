@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Row} from 'reactors-grid';
 import {Button, TextInput} from 'reactors-form';
 import {Text, View} from 'reactors';
+import filter from 'lodash/filter';
 import map from 'lodash/map';
 import uniqBy from 'lodash/uniqBy';
 import Icon from 'reactors-icons';
@@ -18,12 +19,21 @@ function fileExists(file) {
 
 export default class WhereIs extends Component {
   state = {
-    cmd: 'bash',
+    cmd: this.props.cmd || 'bash',
     locations: [],
+    ready: false,
   };
 
   componentDidMount() {
     this.getLocations();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (!prevState.ready && this.state.ready) {
+      if (this.props.start) {
+        this.find();
+      }
+    }
   }
 
   getLocations() {
@@ -34,7 +44,7 @@ export default class WhereIs extends Component {
 
     const locations = uniqBy(rawLocations, 'path');
 
-    this.setState({locations});
+    this.setState({locations, ready: true});
   }
 
   find = () => {
@@ -44,13 +54,12 @@ export default class WhereIs extends Component {
     }));
     this.setState({
       locations,
-    }, () => {
+    }, async () => {
       const check = ({path}) => new Promise(async (resolve, reject) => {
         try {
           const found = await fileExists(
             pathUtil.join(path, this.state.cmd),
           );
-          console.warn({found});
           this.setState(
             {locations: map(locations, (location) => {
               if (location.path === path) {
@@ -67,53 +76,17 @@ export default class WhereIs extends Component {
         }
       });
 
-      Promise.all(map(locations, check));
+      await Promise.all(map(locations, check));
+
+      if (typeof this.props.onResults === 'function') {
+        this.props.onResults(
+          filter(this.state.locations, 'found'),
+        );
+      }
     });
   }
 
-  find2 = () => {
-    const {cmd} = this.state;
-
-    const rawLocations = map(
-      process.env.PATH.split(':'),
-      (path) => ({path}),
-    );
-
-    const locations = uniqBy(rawLocations, 'path');
-
-    this.setState(
-      {locations},
-      () => {
-        const checkers = map(locations,
-          ({path}) => new Promise(async (resolve, reject) => {
-            try {
-              const found = await fileExists(path);
-              this.setState(
-                {locations: map(locations, (location) => {
-                  if (location.path === path) {
-                    location.found = found;
-                  }
-                  return location;
-                })},
-                () => {
-                  resolve(found);
-                }
-              );
-            } catch (error) {
-              reject(error);
-            }
-          }),
-        );
-
-        Promise.all(
-          map(locations, ({path}) => fileExists(path)),
-        );
-      },
-    );
-  };
-
   render() {
-    console.log(this.state.locations);
     const {cmd} = this.state;
     return (
       <View>

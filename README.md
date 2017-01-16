@@ -1,22 +1,22 @@
 WhereIs
 ===
 
-# Run
+A graphical `whereis` client.
+
+# Install
+
+[link to install for ios]
+
+# Use in your own App
 
 ```javascript
-reactors run web
-reactors run desktop
-reactors run ios
-reactors run android
+import WhereIs from 'WhereIs';
+
+<WhereIs
+  cmd="atom"
+  onResults={(results) => {
+    console.log({results});
+  }}
+  start
+  />
 ```
-
-# Upgrade
-
-```javascript
-reactors run web
-reactors run desktop
-reactors run ios
-reactors run android
-```
-
-More info about [reactors](https://github.com/co2-git/reactors).
