@@ -10,6 +10,9 @@ A graphical `whereis` client.
 # Use in your own App
 
 ```javascript
+
+// npm install co2-git/WhereIs
+
 import WhereIs from 'WhereIs';
 
 <WhereIs
